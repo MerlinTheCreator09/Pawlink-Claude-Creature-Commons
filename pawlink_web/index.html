@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PawLink</title>
+<style>
+  /* Monochrome, editorial layout modelled on neuralink.com:
+     black/white sections, light display type with tight tracking, pill controls, 1px rules. */
+  :root {
+    --black: #000;
+    --white: #fff;
+    --grey: #8a8a8a;
+    --grey-dark: #5c5c5c;
+    --rule-dark: #2a2a2a;
+    --rule-light: #e3e3e3;
+    --display: "Untitled Sans", "Helvetica Neue", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    --text: "Söhne", "Helvetica Neue", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    --mono: "Söhne Mono", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font: 16px/1.5 var(--text); color: var(--black); background: var(--white); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+
+  /* ---------- Dark hero ---------- */
+  .hero { background: var(--black); color: var(--white); }
+  nav { display: flex; justify-content: space-between; align-items: center; height: 76px; }
+  .wordmark { font: 500 22px/1 var(--display); letter-spacing: -0.04em; margin: 0; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    height: 40px; padding: 0 20px; border-radius: 5rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    font: 400 14px/1 var(--text); letter-spacing: -0.01em; color: var(--white);
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--white); }
+  .pill.on .dot { background: var(--white); }
+
+  .reading-block { padding: 120px 0 76px; }
+  .eyebrow { font: 400 16px/1.2 var(--text); color: var(--grey); margin: 0 0 20px; }
+  .reading {
+    font: 300 clamp(64px, 11vw, 144px)/0.95 var(--display);
+    letter-spacing: -0.045em; margin: 0;
+  }
+  .reading.idle { color: var(--grey-dark); }
+  .reading-meta {
+    display: flex; flex-wrap: wrap; gap: 12px 40px;
+    margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule-dark);
+    font-size: 14px; color: var(--grey);
+  }
+  .reading-meta b { display: block; font-weight: 400; color: var(--white); font-size: 16px; margin-top: 2px; }
+
+  /* ---------- Light sections ---------- */
+  section.light { padding: 76px 0; }
+  section.light + section.light { padding-top: 0; }
+  .section-title {
+    font: 500 48px/1 var(--display); letter-spacing: -0.04em; margin: 0 0 12px;
+  }
+  .section-lede { font-size: 22px; line-height: 1.2; color: var(--grey-dark); margin: 0 0 56px; max-width: 560px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .stat { border-top: 1px solid var(--black); padding-top: 16px; }
+  .stat .label { font-size: 14px; color: var(--grey-dark); display: flex; justify-content: space-between; }
+  .stat .value { font: 300 88px/1 var(--display); letter-spacing: -0.04em; margin: 24px 0 12px; font-variant-numeric: tabular-nums; }
+  .stat .last { font-size: 14px; color: var(--grey); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 18px 0; border-bottom: 1px solid var(--rule-light); font-size: 16px; }
+  th { font-size: 14px; font-weight: 400; color: var(--grey-dark); border-bottom-color: var(--black); padding-top: 0; }
+  td.time { color: var(--grey-dark); font-variant-numeric: tabular-nums; width: 180px; }
+  td.input { color: var(--grey-dark); width: 200px; }
+  .empty td { color: var(--grey); }
+  .log-table-wrap { max-height: 420px; overflow-y: auto; }
+
+  /* ---------- Raw serial (dark card) ---------- */
+  .serial { background: var(--black); color: var(--white); border-radius: 1.25rem; overflow: hidden; }
+  .serial summary {
+    list-style: none; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 28px 32px; font: 500 22px/1 var(--display); letter-spacing: -0.04em;
+  }
+  .serial summary::-webkit-details-marker { display: none; }
+  .serial summary .pill { font-family: var(--text); letter-spacing: -0.01em; }
+  .serial summary .pill::after { content: "Show"; }
+  .serial[open] summary .pill::after { content: "Hide"; }
+  .log {
+    margin: 0 32px 32px; padding-top: 20px; border-top: 1px solid var(--rule-dark);
+    height: 280px; overflow-y: auto;
+    font: 13px/1.6 var(--mono); color: #cfcfcf;
+  }
+  .log div { white-space: pre-wrap; word-break: break-all; }
+  .log .ts { color: var(--grey-dark); margin-right: 16px; }
+
+  footer { border-top: 1px solid var(--rule-light); }
+  footer .wrap { display: flex; justify-content: space-between; padding-top: 24px; padding-bottom: 40px; font-size: 14px; color: var(--grey); }
+
+  @media (max-width: 760px) {
+    .wrap { padding: 0 20px; }
+    .reading-block { padding: 72px 0 48px; }
+    .stats { grid-template-columns: 1fr; gap: 32px; }
+    .stat .value { font-size: 64px; }
+    .section-title { font-size: 36px; }
+    td.input, th.input { display: none; }
+    footer .wrap { flex-direction: column; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <nav>
+      <h1 class="wordmark">PawLink</h1>
+      <span class="pill" id="device"><span class="dot"></span><span id="device-text">Connecting</span></span>
+    </nav>
+
+    <div class="reading-block">
+      <p class="eyebrow">Current reading</p>
+      <p class="reading idle" id="reading">Awaiting input</p>
+      <div class="reading-meta">
+        <div>Input<b id="meta-input">—</b></div>
+        <div>Recorded<b id="meta-time">—</b></div>
+        <div>Device display<b id="mirror">Press a button</b></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="light">
+    <div class="wrap">
+      <h2 class="section-title">Session</h2>
+      <p class="section-lede" id="total">No readings recorded yet.</p>
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <section class="light">
+    <div class="wrap">
+      <h2 class="section-title">Event log</h2>
+      <p class="section-lede">Every input received from the device, newest first.</p>
+      <div class="log-table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th class="input">Input</th><th>Result</th></tr></thead>
+          <tbody id="events"><tr class="empty"><td colspan="3">No events recorded</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="light">
+    <div class="wrap">
+      <details class="serial">
+        <summary>Raw serial output <span class="pill"></span></summary>
+        <div class="log" id="log"></div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>PawLink</span>
+    <span>Read from the device over USB serial at 115200 baud. Not stored after the server stops.</span>
+  </div>
+</footer>
+
+<script>
+  const RESULTS = [
+    { word: "cancer", label: "Cancer", input: "Button 1" },
+    { word: "diabetes", label: "Diabetes", input: "Button 2" },
+    { word: "treats", label: "Treats", input: "Button 3" },
+  ];
+  const byWord = Object.fromEntries(RESULTS.map(r => [r.word, r]));
+  const LOG_LIMIT = 200;
+  const lastSeen = {};
+  const $ = id => document.getElementById(id);
+
+  function cell(text, cls) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    if (cls) td.className = cls;
+    return td;
+  }
+
+  function renderStats(counts) {
+    const box = $("stats");
+    box.innerHTML = "";
+    let total = 0;
+    for (const r of RESULTS) {
+      const n = counts[r.word] || 0;
+      total += n;
+      const el = document.createElement("div");
+      el.className = "stat";
+      el.innerHTML = `<div class="label"><span></span><span></span></div><div class="value"></div><div class="last"></div>`;
+      el.querySelector(".label span:first-child").textContent = r.label;
+      el.querySelector(".label span:last-child").textContent = r.input;
+      el.querySelector(".value").textContent = n;
+      el.querySelector(".last").textContent = lastSeen[r.word] ? `Last recorded ${lastSeen[r.word]}` : "Not yet recorded";
+      box.appendChild(el);
+    }
+    $("total").textContent = total
+      ? `${total} reading${total === 1 ? "" : "s"} recorded since the server started.`
+      : "No readings recorded yet.";
+  }
+
+  function addEvent(word, ts, prepend = true) {
+    const body = $("events");
+    const empty = body.querySelector(".empty");
+    if (empty) empty.remove();
+    const r = byWord[word];
+    const tr = document.createElement("tr");
+    tr.append(cell(ts, "time"), cell(r ? r.input : "—", "input"), cell(r ? r.label : word));
+    prepend ? body.prepend(tr) : body.appendChild(tr);
+  }
+
+  function setReading(text, ts) {
+    $("mirror").textContent = text;
+    const r = byWord[text];
+    const reading = $("reading");
+    reading.textContent = r ? r.label : "Awaiting input";
+    reading.classList.toggle("idle", !r);
+    $("meta-input").textContent = r ? r.input : "—";
+    if (r && ts) $("meta-time").textContent = ts;
+  }
+
+  function addLog(line, ts) {
+    const log = $("log");
+    const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 30;
+    const div = document.createElement("div");
+    div.innerHTML = `<span class="ts"></span><span></span>`;
+    div.children[0].textContent = ts;
+    div.children[1].textContent = line;
+    log.appendChild(div);
+    while (log.children.length > LOG_LIMIT) log.firstChild.remove();
+    if (atBottom) log.scrollTop = log.scrollHeight;
+  }
+
+  function setStatus(connected, port) {
+    $("device").classList.toggle("on", connected);
+    $("device-text").textContent = connected ? `${port} · Connected` : port ? `${port} · Disconnected` : "Device not found";
+  }
+
+  function handle(ev) {
+    switch (ev.type) {
+      case "snapshot":
+        setStatus(ev.connected, ev.port);
+        for (const h of ev.history) lastSeen[h.word] = h.ts;
+        renderStats(ev.counts);
+        $("events").innerHTML = "";
+        if (!ev.history.length) $("events").innerHTML = `<tr class="empty"><td colspan="3">No events recorded</td></tr>`;
+        for (const h of ev.history.slice().reverse()) addEvent(h.word, h.ts, false);
+        setReading(ev.lcd, ev.history.length ? ev.history[ev.history.length - 1].ts : "");
+        $("log").innerHTML = "";
+        for (const l of ev.log) addLog(l.line, l.ts);
+        break;
+      case "status":
+        setStatus(ev.connected, ev.port);
+        break;
+      case "press":
+        lastSeen[ev.word] = ev.ts;
+        renderStats(ev.counts);
+        addEvent(ev.word, ev.ts);
+        break;
+      case "lcd":
+        setReading(ev.text, ev.ts);
+        break;
+      case "log":
+        addLog(ev.line, ev.ts);
+        break;
+    }
+  }
+
+  const source = new EventSource("/events");
+  source.onmessage = e => handle(JSON.parse(e.data));
+  source.onerror = () => {
+    $("device").classList.remove("on");
+    $("device-text").textContent = "Server offline";
+  };
+</script>
+</body>
+</html>
