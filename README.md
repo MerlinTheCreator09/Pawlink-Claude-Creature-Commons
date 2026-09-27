@@ -1,6 +1,13 @@
 # PawLink
 
-A three-button pet communication board built for the Claude Creature Commons hackathon. Each button shows a word on a 16x2 LCD, and a local web dashboard mirrors the display live and counts every press.
+Assistance and medical-alert dogs can be trained to notice things going wrong with their handler — a drop in blood sugar, a seizure cue, a person becoming unresponsive — and to nudge, paw, bark, or fetch a phone in response. None of that goes anywhere if the handler can't act on it. PawLink is a physical button a trained dog presses to turn that alert into a digital one: a press lights up a word on an LCD and fires a signal a dashboard (and eventually a phone) can pick up, so the alert reaches someone even when the handler can't respond to it themselves.
+
+This repository is the hackathon build: a three-button board (buttons standing in for trained alert cues), ESP32-H2 firmware, and a local web dashboard that mirrors the display live and counts every press.
+
+Built at the Claude Creature Commons hackathon.
+
+- [Pitch deck](https://drive.google.com/file/d/1zp40gPKCSCX9nZMxjhEQKYxn0QxikZF3/view?usp=sharing)
+- [Demo video](demo/PawLink_Final_1min.mp4)
 
 ## Hardware
 
@@ -28,6 +35,7 @@ Buttons use the internal pull-ups (pressed = LOW). Avoid IO8/IO9 (strapping/BOOT
 pawlink/                  Main firmware: buttons -> "cancer" / "diabetes" / "treats"
 glyph_h2_lcd_buttons/     Hardware test sketch: LEFT/OK/RIGHT counter on the LCD
 pawlink_web/              Local dashboard (Python server + HTML)
+demo/                     Demo video
 ```
 
 ## Firmware
