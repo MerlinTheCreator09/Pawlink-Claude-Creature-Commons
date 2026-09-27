@@ -1,13 +1,16 @@
 # PawLink
 
-Assistance and medical-alert dogs can be trained to notice things going wrong with their handler — a drop in blood sugar, a seizure cue, a person becoming unresponsive — and to nudge, paw, bark, or fetch a phone in response. None of that goes anywhere if the handler can't act on it. PawLink is a physical button a trained dog presses to turn that alert into a digital one: a press lights up a word on an LCD and fires a signal a dashboard (and eventually a phone) can pick up, so the alert reaches someone even when the handler can't respond to it themselves.
+Assistance and medical-alert dogs can be trained to notice things going wrong with their handler — a drop in blood sugar, a seizure cue, a person becoming unresponsive — and to nudge, paw, bark, or fetch a phone in response. None of that goes anywhere if the handler can't act on it. PawLink turns that alert into a digital one: a dog presses a physical button, an LCD shows the word, and a signal goes out that a dashboard (and eventually a phone) can pick up, so help reaches someone even when the handler can't ask for it themselves.
 
-This repository is the hackathon build: a three-button board (buttons standing in for trained alert cues), ESP32-H2 firmware, and a local web dashboard that mirrors the display live and counts every press.
+This repo is the hackathon build: a three-button board (standing in for trained alert cues), ESP32-H2 firmware, and a local web dashboard that mirrors the display live and counts every press. Built at the Claude Creature Commons hackathon.
 
-Built at the Claude Creature Commons hackathon.
+## Demo
 
-- [Pitch deck](https://drive.google.com/file/d/1zp40gPKCSCX9nZMxjhEQKYxn0QxikZF3/view?usp=sharing)
-- [Demo video](demo/PawLink_Final_1min.mp4)
+[![PawLink demo](demo/pawlink-demo-thumbnail.jpg)](demo/pawlink-demo.mp4)
+
+Real dog, real hardware: the dog sniffs a sample and presses the paw button, the button signal reaches the handler. Click the image to play, or open [`demo/pawlink-demo.mp4`](demo/pawlink-demo.mp4) directly.
+
+Full pitch deck: [Dogs Detect Cancer](https://drive.google.com/file/d/1Cp8qCkEWdsAFJ6dr2RyMs37CAXkAFpgC/view?usp=sharing).
 
 ## Hardware
 
@@ -62,3 +65,17 @@ Then open http://localhost:8000. On Windows you can double-click `start_pawlink.
 Close the Arduino IDE Serial Monitor first, since only one program can hold the COM port. The server reconnects on its own if the board is unplugged.
 
 Options: `--baud` (default 115200), `--http` (default 8000).
+
+## Testing it
+
+With the firmware uploaded and the dashboard server running:
+
+1. Press each of the 3 buttons in turn.
+2. Check the LCD shows the matching word for 3 seconds, then returns to "Press a button".
+3. Check the dashboard at http://localhost:8000 mirrors the same word and increments that button's press count.
+
+If the LCD updates but the dashboard doesn't, the serial port is probably still held by the Arduino IDE — close its Serial Monitor and restart `server.py`.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
